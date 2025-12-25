@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 
 //user register controller
 export const registerUser = async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { fullName, email, phoneNumber,password } = req.body;
   const isUserAlreadyExsits = await User.findOne({
     email,
   });
@@ -19,6 +19,7 @@ export const registerUser = async (req, res) => {
   const user = await User.create({
     fullName: fullName,
     email: email,
+    phoneNumber:phoneNumber,
     password: hashedPassword,
   });
 
@@ -81,33 +82,50 @@ export const logoutUser=async(req,res)=>{
 }
 
 //foodpartner register controller
-export const registerFoodPartner=async(req,res)=>{
-  const{fullName,email,password}=req.body
-  const isAccountExist=await foodPartner.findOne({email})
-  if(isAccountExist){
-    res.status(400).json({
-      message:"Food partner already exists"
-    })
+export const registerFoodPartner = async (req, res) => {
+  const {
+    ownerName,
+    resturantName,
+    phoneNumber,
+    resturantAddress,
+    email,
+    password
+  } = req.body;
+
+  const isAccountExist = await foodPartner.findOne({ email });
+  if (isAccountExist) {
+    return res.status(400).json({
+      message: "Food partner already exists"
+    });
   }
-  const hashedPassword=await bcrypt.hash(password,10)
-  const foodpartner=await foodPartner.create({
-    fullName:fullName,
-    email:email,
-    password:hashedPassword
-  })
-  const token=jwt.sign({
-    id:foodPartner._id,
-  },process.env.JWT_SECRET)
-  res.cookie("token",token)
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const foodpartner = await foodPartner.create({
+    ownerName,
+    email,
+    resturantName,
+    resturantAddress,
+    phoneNumber,
+    password: hashedPassword
+  });
+
+  const token = jwt.sign(
+    { id: foodpartner._id },
+    process.env.JWT_SECRET
+  );
+
+  res.cookie("token", token);
 
   res.status(201).json({
-    message:"Food Partner successfully registered",
+    message: "Food Partner successfully registered",
     foodpartner: {
-      fullName: fullName,
-      email: email,
-    },
-  })
-}
+      ownerName: foodpartner.ownerName,
+      email: foodpartner.email
+    }
+  });
+};
+
 
 //food partner login controller
 export const loginFoodPartner=async(req,res)=>{
@@ -136,7 +154,7 @@ export const loginFoodPartner=async(req,res)=>{
   res.status(201).json({
     message:"Food Partner logged In successfully",
     foodpartner: {
-      fullName: foodpartner.fullName,
+      ownerName: foodpartner.ownerName,
       email: email,
     },
   })

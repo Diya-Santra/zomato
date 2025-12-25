@@ -2,13 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../../styles/auth.css';
 
-const UserLogin = () => {
+const FoodPartnerLogin = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-title">Welcome Back</h1>
-          <p className="auth-subtitle">Sign in to your account</p>
+          <h1 className="auth-title">Partner Login</h1>
+          <p className="auth-subtitle">Sign in to your partner account</p>
         </div>
 
         <form className="auth-form">
@@ -43,14 +43,14 @@ const UserLogin = () => {
 
         <div className="auth-footer">
           <p className="auth-footer-text">
-            Don't have an account?{' '}
-            <Link to="/user/register" className="auth-link">
-              Sign up
+            Don't have a partner account?{' '}
+            <Link to="/food-partner/register" className="auth-link">
+              Register as Partner
             </Link>
           </p>
           <p className="auth-footer-text">
-            <Link to="/food-partner/register" className="auth-link">
-              Register as Food Partner
+            <Link to="/user/register" className="auth-link">
+              Register as Normal User
             </Link>
           </p>
         </div>
@@ -59,5 +59,5 @@ const UserLogin = () => {
   );
 };
 
-export default UserLogin;
+export default FoodPartnerLogin;
 

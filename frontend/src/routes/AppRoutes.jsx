@@ -1,22 +1,28 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { LoginForm } from "../components/login-form";
+import UserLogin from "../pages/auth/UserLogin";
+import UserRegister from "../pages/auth/UserRegister";
+import FoodPartnerLogin from "../pages/auth/FoodPartnerLogin";
+import FoodPartnerRegister from "../pages/auth/FoodPartnerRegister";
+import Home from "../pages/general/Home";
 
 const AppRoutes = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/user/register" element={<h1>hello</h1>} />
-        <Route path="/user/login" element={<LoginForm/>} />
+        <Route path="/user/register" element={<UserRegister />} />
+        <Route path="/user/login" element={<UserLogin />} />
         <Route
           path="/food-partner/register"
-          element={<h1>food-partner register</h1>}
+          element={<FoodPartnerRegister />}
         />
         <Route
           path="/food-partner/login"
-          element={<h1>food-partner register</h1>}
+          element={<FoodPartnerLogin />}
         />
+        <Route path="/" element={<Home/>}/>
       </Routes>
+
     </Router>
   );
 };
