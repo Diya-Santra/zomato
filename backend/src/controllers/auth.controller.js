@@ -85,9 +85,9 @@ export const logoutUser=async(req,res)=>{
 export const registerFoodPartner = async (req, res) => {
   const {
     ownerName,
-    resturantName,
+    restaurantName,
     phoneNumber,
-    resturantAddress,
+    restaurantAddress,
     email,
     password
   } = req.body;
@@ -104,8 +104,8 @@ export const registerFoodPartner = async (req, res) => {
   const foodpartner = await foodPartner.create({
     ownerName,
     email,
-    resturantName,
-    resturantAddress,
+    restaurantName,
+    restaurantAddress,
     phoneNumber,
     password: hashedPassword
   });

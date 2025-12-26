@@ -1,8 +1,37 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../../styles/auth.css';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const FoodPartnerLogin = () => {
+
+const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/auth/food-partner/login",
+        {
+          email,
+          password,
+        },
+        { withCredentials: true }
+      );
+
+      alert("User logged in successfully");
+      console.log(res.data);
+      navigate("/create-food");
+    } catch (error) {
+      alert(error.response?.data?.message || "Login failed");
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-card">
@@ -11,7 +40,7 @@ const FoodPartnerLogin = () => {
           <p className="auth-subtitle">Sign in to your partner account</p>
         </div>
 
-        <form className="auth-form">
+        <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email" className="form-label">Email</label>
             <input
