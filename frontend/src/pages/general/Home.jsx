@@ -1,39 +1,40 @@
 import React, { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 import {useNavigate} from 'react-router-dom'
+import Cookies from 'js-cookie'
 
 const Home = () => {
   // Sample video data - replace with actual data from API
-  const [videos] = useState([
+  const [videos,setVideos] = useState([
     {
-      id: 1,
-      videoUrl: 'https://ik.imagekit.io/7m6cbkv4cy/f3dd093f-0dc6-4eda-a99b-4bbae1d73718_dBLls211t',
+      _id: 1,
+      video: 'https://ik.imagekit.io/7m6cbkv4cy/f3dd093f-0dc6-4eda-a99b-4bbae1d73718_dBLls211t',
       description: 'Experience the finest culinary delights at our restaurant. Fresh ingredients, authentic flavors, and exceptional service await you.',
-      storeId: 'store-1'
+      name: 'store-1'
     },
+    // {
+    //   id: 2,
+    //   videoUrl: 'https://www.pexels.com/download/video/12409707/',
+    //   description: 'Join us for an unforgettable dining experience with our signature dishes crafted by world-class chefs.',
+    //   storeId: 'store-2'
+    // },
+    // {
+    //   id: 3,
+    //   videoUrl: 'https://www.pexels.com/download/video/30044483/',
+    //   description: 'Discover a fusion of traditional and modern cuisine in a cozy atmosphere perfect for any occasion.',
+    //   storeId: 'store-3'
+    // },
+    // {
+    //   id: 4,
+    //   videoUrl: 'https://media.istockphoto.com/id/2180374229/video/delicious-dumplings-placed-on-a-plate-and-picked-up-with-chopsticks.mp4?s=mp4-640x640-is&k=20&c=8vOE3-QiCQp7TB76T1iOpXO5FGaQLhlKlPRgXLotoC0=',
+    //   description: 'Savor the taste of perfection with our handcrafted dishes made from locally sourced ingredients.',
+    //   storeId: 'store-4'
+    // },
     {
-      id: 2,
-      videoUrl: 'https://www.pexels.com/download/video/12409707/',
-      description: 'Join us for an unforgettable dining experience with our signature dishes crafted by world-class chefs.',
-      storeId: 'store-2'
-    },
-    {
-      id: 3,
-      videoUrl: 'https://www.pexels.com/download/video/30044483/',
-      description: 'Discover a fusion of traditional and modern cuisine in a cozy atmosphere perfect for any occasion.',
-      storeId: 'store-3'
-    },
-    {
-      id: 4,
-      videoUrl: 'https://media.istockphoto.com/id/2180374229/video/delicious-dumplings-placed-on-a-plate-and-picked-up-with-chopsticks.mp4?s=mp4-640x640-is&k=20&c=8vOE3-QiCQp7TB76T1iOpXO5FGaQLhlKlPRgXLotoC0=',
-      description: 'Savor the taste of perfection with our handcrafted dishes made from locally sourced ingredients.',
-      storeId: 'store-4'
-    },
-    {
-      id: 5,
-      videoUrl: 'https://www.pexels.com/download/video/8844431/',
+      _id: 5,
+      video: 'https://www.pexels.com/download/video/8844431/',
       description: 'Indulge in our premium selection of gourmet meals, where every bite tells a story of culinary excellence.',
-      storeId: 'store-5'
+      name: 'store-5'
     }
   ])
 
@@ -79,11 +80,26 @@ const Home = () => {
   }
 
   useEffect(()=>{
-    axios.get("http://localhost:3000/food")
-    .then(response=>{
-      
-    })
-  })
+    async function main() {
+    const token=Cookies.get('token')
+        const result=await axios.get("http://localhost:3000/auth/foodItem/get",{
+          headers:{
+           Authorization: `Bearer ${token}`
+          }
+        })
+        console.log(result)
+        const resultArray=[]
+        for(let i=0;i<videos.length;i++){
+          resultArray.push(videos[i])
+        }
+        for(let i=0;i<result.data.foodItems.length;i++){
+          resultArray.push(result.data.foodItems[i])
+        }
+        console.log(resultArray);
+        setVideos(resultArray)
+    }
+    main()
+  }, [])
 
   return (
     <div
@@ -101,14 +117,14 @@ const Home = () => {
       `}</style>
       {videos.map((video, index) => (
         <div
-          key={video.id}
+          key={video._id}
           className="relative h-screen w-full snap-start flex items-center justify-center p-0 md:p-8 lg:p-12"
         >
           <div className="relative w-full h-full">
             <video
               ref={(el) => (videoRefs.current[index] = el)}
               className="h-full w-full object-cover rounded-none md:rounded-2xl"
-              src={video.videoUrl}
+              src={video.video}
               loop
               muted
               playsInline
@@ -132,7 +148,7 @@ const Home = () => {
             </div>
 
             <button
-              onClick={() => handleVisitStore(video.storeId)}
+              onClick={() => handleVisitStore(video.name)}
               className="w-full bg-white text-black font-semibold py-3 px-6 rounded-lg hover:bg-gray-200 active:bg-gray-300 transition-colors duration-200"
             >
               Visit Store

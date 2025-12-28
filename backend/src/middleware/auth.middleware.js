@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 
 export const authFoodPartnerMiddleware = async (req, res, next) => {
-  const token = req.cookies.token;
+  const token = req.cookies.token || req.headers.authorization.split(" ")[1];
   if (!token) {
     return res.status(401).json({
       message: "Please Login or first",
@@ -25,13 +25,16 @@ export const authFoodPartnerMiddleware = async (req, res, next) => {
 };
 
 export const autheUserMiddleware=async(req,res,next)=>{
-    const token=req.cookies.token
+    const token=req.cookies.token || req.headers.authorization.split(" ")[1];
+        console.log(token);
+
 
     if(!token){
         return res.status(401).json({
             message:"Please login"
         })
     }
+    
     try{
         const decoded=jwt.verify(token,process.env.JWT_SECRET)
 
@@ -46,3 +49,4 @@ export const autheUserMiddleware=async(req,res,next)=>{
         })
     }
 }
+
