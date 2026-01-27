@@ -72,8 +72,8 @@
 }
 
 .form-input:focus {
-  border-color: var(--input-border-focus);
-  box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
+  border-color: #ff3f6c;
+  box-shadow: 0 0 0 3px rgba(255, 63, 108, 0.1);
 }
 
 .form-input::placeholder {
@@ -93,12 +93,12 @@
 }
 
 .form-button-primary {
-  background-color: var(--button-primary-bg);
-  color: var(--button-primary-text);
+  background-color: #ff3f6c;
+  color: #ffffff;
 }
 
 .form-button-primary:hover {
-  background-color: var(--button-primary-hover);
+  background-color: #e0355f;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -148,7 +148,7 @@
 }
 
 .auth-link {
-  color: var(--text-primary);
+  color: #ff3f6c;
   text-decoration: none;
   font-weight: 500;
   transition: color var(--transition-base);

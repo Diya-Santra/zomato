@@ -23,7 +23,6 @@ const UserLogin = () => {
         { withCredentials: true }
       );
 
-      alert("User logged in successfully");
       console.log(res.data);
       navigate("/");
     } catch (error) {

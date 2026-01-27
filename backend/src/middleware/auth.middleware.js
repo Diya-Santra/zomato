@@ -1,21 +1,31 @@
-import foodPartner from "../models/foodPartner.model.js";
 import jwt from "jsonwebtoken";
+import foodPartner from "../models/foodPartner.model.js";
 import User from "../models/user.model.js";
 
 export const authFoodPartnerMiddleware = async (req, res, next) => {
-  const token = req.cookies.token || req.headers.authorization.split(" ")[1];
+  const token =
+    req.cookies.token ||
+    (req.headers.authorization && req.headers.authorization.split(" ")[1]);
+
   if (!token) {
     return res.status(401).json({
-      message: "Please Login or first",
+      message: "Please Login first",
     });
   }
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const foodpartner = await foodPartner.findById(decoded.id);
 
-    req.foodpartner = foodpartner;
 
+    if (!foodpartner) {
+      return res.status(401).json({
+        message: "Invalid food partner token",
+      });
+    }
+
+    req.foodpartner = foodpartner;
     next();
   } catch (err) {
     return res.status(401).json({
@@ -24,29 +34,30 @@ export const authFoodPartnerMiddleware = async (req, res, next) => {
   }
 };
 
-export const autheUserMiddleware=async(req,res,next)=>{
-    const token=req.cookies.token || req.headers.authorization.split(" ")[1];
-        console.log(token);
+export const autheUserMiddleware = async (req, res, next) => {
+  const token =
+    req.cookies.token ||
+    (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
+  console.log(token);
 
-    if(!token){
-        return res.status(401).json({
-            message:"Please login"
-        })
-    }
-    
-    try{
-        const decoded=jwt.verify(token,process.env.JWT_SECRET)
+  if (!token) {
+    return res.status(401).json({
+      message: "Please login",
+    });
+  }
 
-        const user=await User.findById(decoded.id)
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        req.user=user
+    const user = await User.findById(decoded.id);
 
-        next()
-    }catch(err){
-        return res.status(401).json({
-            message:"Invalid token"
-        })
-    }
-}
+    req.user = user;
 
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      message: "Invalid token",
+    });
+  }
+};

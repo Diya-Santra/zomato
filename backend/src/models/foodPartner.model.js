@@ -27,6 +27,10 @@ const foodPartnerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  profilePic: {
+    type: String,
+    default: ""
+  }
 });
 
 const foodPartner=new mongoose.model("foodPartner",foodPartnerSchema)

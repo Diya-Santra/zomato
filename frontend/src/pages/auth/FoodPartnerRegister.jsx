@@ -9,15 +9,20 @@ const FoodPartnerRegister = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const restaurantName = e.target.restaurantName.value;
-    const ownerName = e.target.ownerName.value;
-    const email = e.target.email.value;
-    const phoneNumber = e.target.phoneNumber.value;
-    const restaurantAddress = e.target.restaurantAddress.value;
-    const password = e.target.password.value;
-    const confirmPassword = e.target.confirmPassword.value;
+    const formData = new FormData();
+    formData.append("restaurantName", e.target.restaurantName.value);
+    formData.append("ownerName", e.target.ownerName.value);
+    formData.append("email", e.target.email.value);
+    formData.append("phoneNumber", e.target.phoneNumber.value);
+    formData.append("restaurantAddress", e.target.restaurantAddress.value);
+    formData.append("password", e.target.password.value);
 
-    if (password !== confirmPassword) {
+    if (e.target.profilePic.files[0]) {
+      formData.append("profilePic", e.target.profilePic.files[0]);
+    }
+
+    const confirmPassword = e.target.confirmPassword.value;
+    if (e.target.password.value !== confirmPassword) {
       alert("Passwords do not match");
       return;
     }
@@ -25,20 +30,15 @@ const FoodPartnerRegister = () => {
     try {
       const res = await axios.post(
         "http://localhost:3000/auth/food-partner/register",
+        formData,
         {
-          restaurantName,
-          ownerName,
-          email,
-          phoneNumber,
-          restaurantAddress,
-          password,
-        },
-        { withCredentials: true }
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" }
+        }
       );
 
-      alert("Partner registered successfully");
       console.log(res.data);
-      navigate("/create-food");
+      navigate("/");
     } catch (error) {
       alert(error.response?.data?.message || "Registration failed");
     }
@@ -56,6 +56,11 @@ const FoodPartnerRegister = () => {
           <div className="form-group">
             <label className="form-label">Restaurant Name</label>
             <input type="text" name="restaurantName" className="form-input" required />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Profile Picture (Optional)</label>
+            <input type="file" name="profilePic" className="form-input" accept="image/*" />
           </div>
 
           <div className="form-group">

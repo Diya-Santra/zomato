@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import foodPartner  from "../models/foodPartner.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { uploadFile } from "../services/storage.service.js";
 
 //user register controller
 export const registerUser = async (req, res) => {
@@ -45,13 +46,13 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
-    res.status(400).json({
+    return res.status(400).json({
       message: "Inavlid email or password",
     });
   }
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
-    res.status(400).json({
+    return res.status(400).json({
       message: "Inavlid email or password",
     });
   }
@@ -101,13 +102,25 @@ export const registerFoodPartner = async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  let profilePicUrl = "";
+  if (req.file) {
+    try {
+      const uploadResult = await uploadFile(req.file.buffer, `pfp_${Date.now()}_${req.file.originalname}`);
+      profilePicUrl = uploadResult.url;
+    } catch (uploadError) {
+      console.error("Profile picture upload failed:", uploadError);
+      // We continue registration even if pfp fails, or we could return error
+    }
+  }
+
   const foodpartner = await foodPartner.create({
     ownerName,
     email,
     restaurantName,
     restaurantAddress,
     phoneNumber,
-    password: hashedPassword
+    password: hashedPassword,
+    profilePic: profilePicUrl
   });
 
   const token = jwt.sign(
@@ -141,12 +154,12 @@ export const loginFoodPartner=async(req,res)=>{
   const isPasswordValid=await bcrypt.compare(password,foodpartner.password)
 
   if(!isPasswordValid){
-    res.status(400).json({
+    return res.status(400).json({
       message:"Invalid password"
     })
   }
   const token=jwt.sign({
-    id:foodPartner._id
+    id:foodpartner._id
   },process.env.JWT_SECRET)
 
   res.cookie("token",token)
@@ -156,6 +169,7 @@ export const loginFoodPartner=async(req,res)=>{
     foodpartner: {
       ownerName: foodpartner.ownerName,
       email: email,
+      profilePic: foodpartner.profilePic
     },
   })
 }
