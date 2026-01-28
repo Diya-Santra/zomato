@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import Cookies from "js-cookie";
-import { Heart, Bookmark, MessageCircle, Send, X, Loader2, Search, LogOut, User as UserIcon } from "lucide-react";
+import { Heart, Bookmark, MessageCircle, Send, X, Loader2, LogOut, User as UserIcon, ChefHat } from "lucide-react";
+import "../../styles/auth.css";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -14,6 +15,8 @@ const Home = () => {
   const [newComment, setNewComment] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [authModal, setAuthModal] = useState(null); // 'login' | 'signup' | null
 
   const videoRefs = useRef([]);
   const containerRef = useRef(null);
@@ -23,6 +26,26 @@ const Home = () => {
   useEffect(() => {
     const token = Cookies.get("token");
     setIsLoggedIn(!!token);
+
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.id) {
+          // Attempt to fetch if it's a food-partner
+          axios.get(`http://localhost:3000/auth/food-partner/${payload.id}`, { withCredentials: true })
+            .then(res => {
+              if (res.data.foodPartner) {
+                setUserProfile(res.data.foodPartner);
+              }
+            })
+            .catch(() => {
+              // Not a food partner or error, ignore
+            });
+        }
+      } catch (e) {
+        console.error("Token parsing error:", e);
+      }
+    }
   }, []);
 
   const fetchVideos = async (query = "") => {
@@ -47,7 +70,6 @@ const Home = () => {
     fetchVideos();
   }, []);
 
-  // Handle Search with Debounce
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
@@ -62,12 +84,24 @@ const Home = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:3000/auth/user/logout", {}, { withCredentials: true });
-      Cookies.remove("token");
+      const token = Cookies.get("token");
+      await axios.post(
+        "http://localhost:3000/auth/user/logout",
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
+        }
+      );
+      Cookies.remove("token", { path: "/" });
       setIsLoggedIn(false);
       window.location.reload();
     } catch (error) {
       console.error("Logout failed:", error);
+      // Fallback: still clear local session even if server call fails
+      Cookies.remove("token", { path: "/" });
+      setIsLoggedIn(false);
+      window.location.reload();
     }
   };
 
@@ -169,51 +203,71 @@ const Home = () => {
 
   return (
     <div className="h-screen w-full bg-black overflow-hidden flex flex-col">
-      {/* Premium Navbar */}
-      <nav className="fixed top-0 left-0 right-0 h-20 bg-black/40 backdrop-blur-xl border-b border-white/5 z-50 flex items-center justify-between px-6 md:px-12">
+      <nav className="fixed top-0 left-30 right-30 h-18 bg-black/40  border-b border-white/5 z-50 flex items-center justify-between px-6 md:px-12">
         <Link to="/" className="text-4xl font-extrabold text-[#ff3f6c] tracking-tighter hover:scale-105 transition-transform">
           zomato
         </Link>
 
-        <div className="hidden md:flex flex-1 max-w-[600px] relative group mx-8">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 group-focus-within:text-[#ff3f6c] transition-colors" size={20} />
-          <input
-            type="text"
-            placeholder="Search for restaurant, cuisine or a dish"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full bg-white/10 border border-white/10 rounded-xl py-3 pl-12 pr-6 text-white focus:outline-none focus:bg-white/20 focus:border-[#ff3f6c] transition-all placeholder:text-white/40 text-base"
-          />
-        </div>
-
-        <div className="flex items-center gap-4">
-          {isLoggedIn ? (
-            <button
-              onClick={handleLogout}
-              className="text-white hover:text-gray-300 font-medium text-lg focus:outline-none transition-colors"
-            >
-              Log out
-            </button>
-          ) : (
-            <div className="flex items-center gap-6">
-              <Link
-                to="/user/login"
-                className="text-white hover:text-gray-300 font-medium text-lg transition-colors"
-              >
-                Log in
-              </Link>
-              <Link
-                to="/user/register"
-                className="text-white hover:text-gray-300 font-medium text-lg transition-colors"
-              >
-                Sign up
-              </Link>
+        <div className="flex-1 flex items-center justify-end gap-8">
+          {isLoggedIn && (
+            <div className="hidden md:flex flex-1 max-w-[500px] relative">
+              <input
+                type="text"
+                placeholder="   Search for restaurant, cuisine or a dish"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="w-full bg-white/10 border border-white/10 rounded-2xl pb-8 py-8 px-6 mx-5 h-9 text-white focus:outline-none focus:bg-white/20 focus:border-[#ff3f6c] transition-all placeholder:text-white/40 text-lg shadow-inner"
+              />
             </div>
           )}
+
+          <div className="flex items-center gap-6">
+            {!isLoggedIn ? (
+              <>
+                <button
+                  onClick={() => setAuthModal('login')}
+                  className="flex items-center gap-2 text-white hover:text-[#ff3f6c] font-bold text-[1rem] transition-all active:scale-95"
+                >
+                  <UserIcon size={18} />
+                  <span>Log in</span>
+                </button>
+                <button
+                  onClick={() => setAuthModal('signup')}
+                  className="text-white hover:text-[#ff3f6c] px-[1.5rem] py-[0.8rem] rounded-lg font-bold text-[1rem] transition-all active:scale-95"
+                >
+                  Sign up
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center gap-4">
+                {userProfile && (
+                  <Link
+                    to={`/food-partner/${userProfile._id}`}
+                    className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#ff3f6c] hover:scale-110 transition-transform shadow-lg"
+                    title="My Profile"
+                  >
+                    {userProfile.profilePic ? (
+                      <img src={userProfile.profilePic} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-[#ff3f6c] flex items-center justify-center text-white font-bold">
+                        {userProfile.restaurantName?.[0] || "?"}
+                      </div>
+                    )}
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 bg-[#ff3f6c]/10 text-[#ff3f6c] px-4 py-2 rounded-lg font-bold text-base transition-all active:scale-95"
+                >
+                  <LogOut size={18} />
+                  <span>Log out</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
-      {/* Main Content Area */}
       <div
         ref={containerRef}
         className="flex-1 overflow-y-scroll snap-y snap-mandatory bg-black scrollbar-hide pt-0"
@@ -237,7 +291,7 @@ const Home = () => {
               key={video._id}
               className="relative h-screen w-full snap-start flex items-center justify-center p-0 md:p-8 lg:p-12"
             >
-              <div className="relative w-full h-[85vh] max-w-[1400px] mt-20 mx-auto overflow-hidden rounded-none md:rounded-3xl shadow-2xl bg-[#111]">
+              <div className="relative w-full h-[80vh] max-w-[1400px] mt-20 mx-auto overflow-hidden rounded-none md:rounded-3xl shadow-2xl bg-[#111]">
                 <video
                   ref={(el) => (videoRefs.current[index] = el)}
                   className="h-full w-full object-cover"
@@ -247,7 +301,6 @@ const Home = () => {
                   playsInline
                 />
 
-                {/* Interaction Overlay */}
                 <div className="absolute right-8 bottom-[25%] flex flex-col items-center gap-8 z-20">
                   <button onClick={() => handleLike(video._id)} className={`flex flex-col items-center gap-1 transition-transform active:scale-95 ${video.isLiked ? 'text-[#ff3f6c]' : 'text-white'}`}>
                     <Heart fill={video.isLiked ? "#ff3f6c" : "none"} size={36} strokeWidth={2.5} className="drop-shadow-xl" />
@@ -263,13 +316,20 @@ const Home = () => {
                     <Bookmark fill={video.isSaved ? "white" : "none"} size={36} strokeWidth={2.5} className="drop-shadow-xl" />
                     <span className="text-sm font-bold drop-shadow-lg">{video.isSaved ? 'Saved' : 'Save'}</span>
                   </button>
+
+                  <button onClick={() => handleVisitStore(video.foodPartner?._id)} className="flex flex-col items-center gap-1 transition-transform active:scale-95 text-white">
+                    <img src="/food-delivery.png" alt="Order" className="w-[36px] h-[36px] object-contain invert brightness-0 [filter:drop-shadow(0_4px_6px_rgba(0,0,0,0.4))]" />
+                    <span className="text-sm font-bold drop-shadow-lg">Order</span>
+                  </button>
                 </div>
 
-                {/* Store Info Overlay */}
                 <div className="absolute bottom-0 left-0 right-0 p-12 pb-14 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
                   <div className="mb-8 max-w-[85%]">
-                    <div className="flex items-center gap-4 mb-5">
-                      <div className="w-14 h-14 rounded-full overflow-hidden bg-[#ff3f6c] p-0.5 shadow-xl border-2 border-white/20">
+                    <div
+                      className="flex items-center gap-4 mb-5 cursor-pointer group/brand w-fit"
+                      onClick={() => handleVisitStore(video.foodPartner?._id)}
+                    >
+                      <div className="w-14 h-14 rounded-full overflow-hidden bg-[#ff3f6c] p-0.5 shadow-xl border-2 border-white/20 transition-transform group-hover/brand:scale-110 group-hover/brand:border-[#ff3f6c]">
                         {video.foodPartner?.profilePic ? (
                           <img
                             src={video.foodPartner.profilePic}
@@ -283,36 +343,14 @@ const Home = () => {
                         )}
                       </div>
                       <div>
-                        <h4 className="text-white font-bold text-2xl">{video.foodPartner?.restaurantName || video.name}</h4>
-                        <span className="text-white/60 text-sm font-semibold uppercase tracking-widest">Master Chef</span>
+                        <h4 className="text-white font-bold text-2xl group-hover/brand:text-[#ff3f6c] transition-colors">{video.foodPartner?.restaurantName || video.name}</h4>
+                        <p className="text-white text-xl font-normal leading-relaxed line-clamp-2 opacity-90 mt-1">{video.description}</p>
                       </div>
                     </div>
-                    <p className="text-white text-xl font-normal leading-relaxed line-clamp-2 opacity-90">{video.description}</p>
                   </div>
 
-                  <button
-                    onClick={() => handleVisitStore(video.foodPartner?._id)}
-                    className="w-full md:w-fit bg-[#ff3f6c] text-white font-bold py-5 px-10 rounded-2xl hover:bg-[#e0355f] transition-all transform active:scale-95 shadow-2xl flex items-center justify-center gap-3 uppercase tracking-wider text-sm"
-                  >
-                    <span>Explore Shop</span>
-                    <svg
-                      width="22"
-                      height="22"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="ml-1"
-                    >
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                      <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                  </button>
                 </div>
 
-                {/* Comment Drawer Section */}
                 {showComments && activeVideo?._id === video._id && (
                   <div className="absolute inset-0 bg-black/50 z-30 flex justify-end" onClick={() => setShowComments(false)}>
                     <div className="w-full max-w-[400px] h-full bg-white flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={(e) => e.stopPropagation()}>
@@ -324,9 +362,9 @@ const Home = () => {
                         {comments.length > 0 ? (
                           comments.map((c, i) => (
                             <div key={i} className="flex gap-3">
-                              <div className="w-10 h-10 rounded-full bg-[#ff3f6c] text-white flex items-center justify-center font-bold flex-shrink-0">{c.user?.name?.[0] || "?"}</div>
+                              <div className="w-10 h-10 rounded-full bg-[#ff3f6c] text-white flex items-center justify-center font-bold flex-shrink-0">{c.user?.fullName?.[0] || c.user?.ownerName?.[0] || "?"}</div>
                               <div className="flex flex-col">
-                                <span className="font-bold text-black text-sm">{c.user?.name || "Gourmet"}</span>
+                                <span className="font-bold text-black text-sm">{c.user?.fullName || c.user?.ownerName || "Gourmet"}</span>
                                 <p className="text-gray-800 text-sm">{c.text}</p>
                               </div>
                             </div>
@@ -355,6 +393,55 @@ const Home = () => {
           ))
         )}
       </div>
+      {/* Auth Selection Modal */}
+      {authModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm" onClick={() => setAuthModal(null)}>
+          <div className="auth-card relative animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setAuthModal(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="auth-header">
+              <h1 className="auth-title">
+                {authModal === 'login' ? 'Welcome Back' : 'Join Zomato'}
+              </h1>
+              <p className="auth-subtitle">Choose your role to continue</p>
+            </div>
+
+            <div className="auth-form">
+              <Link
+                to={authModal === 'login' ? "/user/login" : "/user/register"}
+                className="form-button form-button-primary flex items-center justify-center gap-3 no-underline shadow-none"
+              >
+                <UserIcon size={20} />
+                <span>Continue as User</span>
+              </Link>
+
+              <div className="auth-divider">
+                <span className="auth-divider-text">OR</span>
+              </div>
+
+              <Link
+                to={authModal === 'login' ? "/food-partner/login" : "/food-partner/register"}
+                className="form-button form-button-primary flex items-center justify-center gap-3 no-underline shadow-none"
+                style={{ backgroundColor: '#111' }}
+              >
+                <ChefHat size={20} />
+                <span>Continue as Food-Partner</span>
+              </Link>
+            </div>
+
+            <div className="auth-footer">
+              <p className="auth-footer-text">
+                By continuing, you agree to our Terms of Service and Privacy Policy.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

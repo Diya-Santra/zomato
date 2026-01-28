@@ -3,6 +3,7 @@ import foodItem from "../models/foodItem.model.js";
 import Like from "../models/likes.model.js";
 import Save from "../models/save.model.js";
 import jwt from "jsonwebtoken";
+import { uploadFile } from "../services/storage.service.js";
 
 export const getFoodPartnerById = async (req, res) => {
     const foodPartnerId = req.params.id;
@@ -49,4 +50,29 @@ export const getFoodPartnerById = async (req, res) => {
             foodItems: foodItemsByFoodPartner
         }
     });
+};
+
+export const updateProfilePic = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        const fileName = `pfp_${req.foodpartner._id}_${Date.now()}`;
+        const uploadResult = await uploadFile(req.file.buffer, fileName);
+
+        const updatedPartner = await foodPartner.findByIdAndUpdate(
+            req.foodpartner._id,
+            { profilePic: uploadResult.url },
+            { new: true }
+        );
+
+        res.status(200).json({
+            message: "Profile picture updated successfully",
+            profilePic: updatedPartner.profilePic
+        });
+    } catch (error) {
+        console.error("Error updating profile picture:", error);
+        res.status(500).json({ message: "Failed to update profile picture" });
+    }
 };

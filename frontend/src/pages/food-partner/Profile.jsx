@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import "./Profile.css";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import { Heart, Bookmark, MessageCircle, Send } from "lucide-react";
+import { Heart, Bookmark, MessageCircle, Send, Pencil, Loader2, X } from "lucide-react";
+import Cookies from "js-cookie";
 
 const Profile = () => {
   // Mock data for display
@@ -19,6 +20,8 @@ const Profile = () => {
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [isOwner, setIsOwner] = useState(false);
+  const [isUpdatingPfp, setIsUpdatingPfp] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -30,6 +33,20 @@ const Profile = () => {
         setProfile(response.data.foodPartner);
         setVideos(response.data.foodPartner?.foodItems || []);
         setLoading(false);
+
+        // Check if the current user is the owner
+        const token = Cookies.get("token");
+        if (token && response.data.foodPartner) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            // Compare IDs as strings to avoid type issues
+            if (String(payload.id) === String(response.data.foodPartner._id)) {
+              setIsOwner(true);
+            }
+          } catch (e) {
+            console.error("Token parsing error:", e);
+          }
+        }
       })
       .catch((error) => {
         console.error(error);
@@ -76,7 +93,6 @@ const Profile = () => {
       }
     } catch (error) {
       console.error("Failed to like:", error);
-      alert(error.response?.data?.message || "Please login to like videos");
     }
   };
 
@@ -100,7 +116,6 @@ const Profile = () => {
       }
     } catch (error) {
       console.error("Failed to save:", error);
-      alert(error.response?.data?.message || "Please login to save videos");
     }
   };
 
@@ -118,7 +133,6 @@ const Profile = () => {
       setNewComment("");
     } catch (error) {
       console.error("Failed to add comment:", error);
-      alert("Please login to comment");
     }
   };
 
@@ -127,6 +141,31 @@ const Profile = () => {
     setSelectedVideo(video);
     setShowComments(true);
     fetchComments(video._id);
+  };
+
+  const handlePfpChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("profilePic", file);
+
+    setIsUpdatingPfp(true);
+    try {
+      const response = await axios.put(
+        "http://localhost:3000/auth/food-partner/update-pfp",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
+        }
+      );
+      setProfile(prev => ({ ...prev, profilePic: response.data.profilePic }));
+    } catch (error) {
+      console.error("Failed to update profile picture:", error);
+    } finally {
+      setIsUpdatingPfp(false);
+    }
   };
 
   if (loading) {
@@ -178,9 +217,9 @@ const Profile = () => {
                   {comments.length > 0 ? (
                     comments.map((c, i) => (
                       <div key={i} className="comment-item">
-                        <div className="comment-user-avatar">{c.user?.name?.[0] || "?"}</div>
+                        <div className="comment-user-avatar">{c.user?.fullName?.[0] || c.user?.ownerName?.[0] || "?"}</div>
                         <div className="comment-content">
-                          <span className="comment-username">{c.user?.name || "User"}</span>
+                          <span className="comment-username">{c.user?.fullName || c.user?.ownerName || "User"}</span>
                           <p className="comment-text">{c.text}</p>
                         </div>
                       </div>
@@ -213,27 +252,60 @@ const Profile = () => {
 
   return (
     <div className="profile-container">
+      <Link to="/" className="close-profile-btn" title="Go to Home">
+        <X size={24} />
+      </Link>
       <div className="profile-header">
-        <div className="profile-avatar overflow-hidden">
-          {profile?.profilePic ? (
-            <img
-              src={profile.profilePic}
-              alt={profile.restaurantName}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-[#ff3f6c] flex items-center justify-center text-white text-4xl font-black">
-              {profile?.restaurantName?.[0] || "?"}
+        <div className="relative w-fit">
+          <div className="profile-avatar overflow-hidden relative border-4 border-[#ff3f6c]/20">
+            {profile?.profilePic ? (
+              <img
+                src={profile.profilePic}
+                alt={profile.restaurantName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-[#ff3f6c] flex items-center justify-center text-white text-4xl font-black">
+                {profile?.restaurantName?.[0] || "?"}
+              </div>
+            )}
+
+            {isUpdatingPfp && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
+                <Loader2 className="animate-spin text-white" size={32} />
+              </div>
+            )}
+          </div>
+
+          {isOwner && (
+            <div className="absolute bottom-1 right-1 z-30">
+              <label
+                htmlFor="pfp-upload"
+                className="flex items-center justify-center w-10 h-10 bg-[#ff3f6c] rounded-full cursor-pointer hover:bg-[#e0355f] transition-all shadow-xl border-2 border-white hover:scale-110 active:scale-95"
+                title="Change Profile Picture"
+              >
+                <Pencil size={18} className="text-white" />
+              </label>
+              <input
+                id="pfp-upload"
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handlePfpChange}
+                disabled={isUpdatingPfp}
+              />
             </div>
           )}
         </div>
         <div className="profile-info">
-          <div className="info-box"><strong>Name:</strong> {profile?.restaurantName || "N/A"}</div>
+          <div className="info-box font-bold"><strong></strong> {profile?.restaurantName || "N/A"}</div>
           <div className="info-box"><strong>Address:</strong> {profile?.restaurantAddress || "N/A"}</div>
         </div>
-        <Link to="/create-food" className="add-food-btn">
-          + Add Food
-        </Link>
+        {isOwner && (
+          <Link to="/create-food" className="add-food-btn">
+            + Add Food
+          </Link>
+        )}
       </div>
 
       <div className="profile-stats">

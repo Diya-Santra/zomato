@@ -180,7 +180,7 @@ export const addComment = async (req, res) => {
 
 export const getCommentsByFood = async (req, res) => {
   const { foodId } = req.params
-  const comments = await Comment.find({ food: foodId }).populate("user", "name ownerName")
+  const comments = await Comment.find({ food: foodId }).populate("user", "fullName ownerName")
   
   res.status(200).json({
     message: "Comments fetched successfully",

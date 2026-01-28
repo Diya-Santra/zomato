@@ -23,7 +23,6 @@ const FoodPartnerRegister = () => {
 
     const confirmPassword = e.target.confirmPassword.value;
     if (e.target.password.value !== confirmPassword) {
-      alert("Passwords do not match");
       return;
     }
 
@@ -38,9 +37,9 @@ const FoodPartnerRegister = () => {
       );
 
       console.log(res.data);
-      navigate("/");
+      navigate(`/food-partner/${res.data.foodpartner._id}`);
     } catch (error) {
-      alert(error.response?.data?.message || "Registration failed");
+      console.error(error.response?.data?.message || "Registration failed");
     }
   };
 
@@ -48,8 +47,8 @@ const FoodPartnerRegister = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-title">Partner Registration</h1>
-          <p className="auth-subtitle">Join as a food partner</p>
+          <h1 className="auth-title">Food-Partner Registration</h1>
+          <p className="auth-subtitle">Join as a food-partner</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
@@ -94,7 +93,7 @@ const FoodPartnerRegister = () => {
           </div>
 
           <button type="submit" className="form-button form-button-primary">
-            Register as Partner
+            Register as Food-Partner
           </button>
         </form>
 

@@ -26,7 +26,7 @@ const UserLogin = () => {
       console.log(res.data);
       navigate("/");
     } catch (error) {
-      alert(error.response?.data?.message || "Login failed");
+      console.error(error.response?.data?.message || "Login failed");
     }
   };
 
@@ -81,7 +81,7 @@ const UserLogin = () => {
           </p>
           <p className="auth-footer-text">
             <Link to="/food-partner/register" className="auth-link">
-              Register as Food Partner
+              Register as Food-Partner
             </Link>
           </p>
         </div>

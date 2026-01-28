@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 const FoodPartnerLogin = () => {
 
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,11 +24,10 @@ const navigate = useNavigate();
         { withCredentials: true }
       );
 
-      alert("User logged in successfully");
       console.log(res.data);
-      navigate("/create-food");
+      navigate(`/food-partner/${res.data.foodpartner._id}`);
     } catch (error) {
-      alert(error.response?.data?.message || "Login failed");
+      console.error(error.response?.data?.message || "Login failed");
     }
   };
 
@@ -36,8 +35,8 @@ const navigate = useNavigate();
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-title">Partner Login</h1>
-          <p className="auth-subtitle">Sign in to your partner account</p>
+          <h1 className="auth-title">Food-Partner Login</h1>
+          <p className="auth-subtitle">Sign in to your food-partner account</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
@@ -72,9 +71,9 @@ const navigate = useNavigate();
 
         <div className="auth-footer">
           <p className="auth-footer-text">
-            Don't have a partner account?{' '}
+            Don't have a food-partner account?{' '}
             <Link to="/food-partner/register" className="auth-link">
-              Register as Partner
+              Register as Food-Partner
             </Link>
           </p>
           <p className="auth-footer-text">

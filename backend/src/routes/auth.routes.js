@@ -18,11 +18,11 @@ const router = express.Router();
 //user auth routes
 router.post("/user/register", registerUser);
 router.post("/user/login", loginUser);
-router.get("/user/logout", logoutUser);
+router.post("/user/logout", logoutUser);
 
 //foodpartner auth routes
 router.post("/food-partner/register", uploads.single("profilePic"), registerFoodPartner);
 router.post("/food-partner/login", loginFoodPartner);
-router.get("/food-partner/logout", logoutFoodPartner);
+router.post("/food-partner/logout", logoutFoodPartner);
 
 export default router;

@@ -76,7 +76,7 @@ export const loginUser = async (req, res) => {
 
 //user logout controller
 export const logoutUser=async(req,res)=>{
-    res.clearCookie("token")
+    res.clearCookie("token", { path: '/' });
     res.status(200).json({
         message:"LoggedOut successfully"
     })
@@ -133,6 +133,7 @@ export const registerFoodPartner = async (req, res) => {
   res.status(201).json({
     message: "Food Partner successfully registered",
     foodpartner: {
+      _id: foodpartner._id,
       ownerName: foodpartner.ownerName,
       email: foodpartner.email
     }
@@ -167,6 +168,7 @@ export const loginFoodPartner=async(req,res)=>{
   res.status(201).json({
     message:"Food Partner logged In successfully",
     foodpartner: {
+      _id: foodpartner._id,
       ownerName: foodpartner.ownerName,
       email: email,
       profilePic: foodpartner.profilePic
@@ -175,7 +177,7 @@ export const loginFoodPartner=async(req,res)=>{
 }
 
 export const logoutFoodPartner=async(req,res)=>{
-  res.clearCookie("token")
+  res.clearCookie("token", { path: '/' });
     res.status(200).json({
         message:"LoggedOut successfully"
     })
