@@ -50,6 +50,10 @@ const Home = () => {
 
   const fetchVideos = async (query = "") => {
     const token = Cookies.get("token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     try {
       const result = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/get${query ? `?search=${query}` : ""}`,
@@ -268,131 +272,160 @@ const Home = () => {
         </div>
       </nav>
 
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-y-scroll snap-y snap-mandatory bg-black scrollbar-hide pt-0"
-        style={{ scrollbarWidth: "none" }}
-      >
-        <style>{`.scrollbar-hide::-webkit-scrollbar { display: none; }`}</style>
-
-        {loading ? (
-          <div className="h-full w-full flex flex-col items-center justify-center text-white gap-4">
-            <Loader2 className="animate-spin text-[#ff3f6c]" size={48} />
-            <p className="text-xl font-medium animate-pulse">Refreshing content...</p>
-          </div>
-        ) : videos.length === 0 ? (
-          <div className="h-full w-full flex flex-col items-center justify-center text-white p-6 text-center">
-            <h2 className="text-3xl font-bold mb-4">No results found!</h2>
-            <p className="text-gray-400">Try searching for something else like "Burger" or "Pizza".</p>
-          </div>
-        ) : (
-          videos.map((video, index) => (
-            <div
-              key={video._id}
-              className="relative h-screen w-full snap-start flex items-center justify-center p-0 md:p-8 lg:p-12"
-            >
-              <div className="relative w-full h-[80vh] max-w-[1400px] mt-20 mx-auto overflow-hidden rounded-none md:rounded-3xl shadow-2xl bg-[#111]">
-                <video
-                  ref={(el) => (videoRefs.current[index] = el)}
-                  className="h-full w-full object-cover"
-                  src={video.video}
-                  loop
-                  muted
-                  playsInline
-                />
-
-                <div className="absolute right-8 bottom-[25%] flex flex-col items-center gap-8 z-20">
-                  <button onClick={() => handleLike(video._id)} className={`flex flex-col items-center gap-1 transition-transform active:scale-95 ${video.isLiked ? 'text-[#ff3f6c]' : 'text-white'}`}>
-                    <Heart fill={video.isLiked ? "#ff3f6c" : "none"} size={36} strokeWidth={2.5} className="drop-shadow-xl" />
-                    <span className="text-sm font-bold drop-shadow-lg">{video.likeCount || 0}</span>
-                  </button>
-
-                  <button onClick={() => handleOpenComments(video)} className="flex flex-col items-center gap-1 transition-transform active:scale-95 text-white">
-                    <MessageCircle size={36} strokeWidth={2.5} className="drop-shadow-xl" />
-                    <span className="text-sm font-bold drop-shadow-lg">Chat</span>
-                  </button>
-
-                  <button onClick={() => handleSave(video._id)} className="flex flex-col items-center gap-1 transition-transform active:scale-95 text-white">
-                    <Bookmark fill={video.isSaved ? "white" : "none"} size={36} strokeWidth={2.5} className="drop-shadow-xl" />
-                    <span className="text-sm font-bold drop-shadow-lg">{video.isSaved ? 'Saved' : 'Save'}</span>
-                  </button>
-
-                  <button onClick={() => handleVisitStore(video.foodPartner?._id)} className="flex flex-col items-center gap-1 transition-transform active:scale-95 text-white">
-                    <img src="/food-delivery.png" alt="Order" className="w-[36px] h-[36px] object-contain invert brightness-0 [filter:drop-shadow(0_4px_6px_rgba(0,0,0,0.4))]" />
-                    <span className="text-sm font-bold drop-shadow-lg">Order</span>
-                  </button>
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 p-12 pb-14 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
-                  <div className="mb-8 max-w-[85%]">
-                    <div
-                      className="flex items-center gap-4 mb-5 cursor-pointer group/brand w-fit"
-                      onClick={() => handleVisitStore(video.foodPartner?._id)}
-                    >
-                      <div className="w-14 h-14 rounded-full overflow-hidden bg-[#ff3f6c] p-0.5 shadow-xl border-2 border-white/20 transition-transform group-hover/brand:scale-110 group-hover/brand:border-[#ff3f6c]">
-                        {video.foodPartner?.profilePic ? (
-                          <img
-                            src={video.foodPartner.profilePic}
-                            alt={video.foodPartner.restaurantName}
-                            className="w-full h-full object-cover rounded-full"
-                          />
-                        ) : (
-                          <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-                            <span className="text-white font-black text-xl">{video.foodPartner?.restaurantName?.[0] || "?"}</span>
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="text-white font-bold text-2xl group-hover/brand:text-[#ff3f6c] transition-colors">{video.foodPartner?.restaurantName || video.name}</h4>
-                        <p className="text-white text-xl font-normal leading-relaxed line-clamp-2 opacity-90 mt-1">{video.description}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-
-                {showComments && activeVideo?._id === video._id && (
-                  <div className="absolute inset-0 bg-black/50 z-30 flex justify-end" onClick={() => setShowComments(false)}>
-                    <div className="w-full max-w-[400px] h-full bg-white flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={(e) => e.stopPropagation()}>
-                      <div className="p-6 border-b flex justify-between items-center text-black">
-                        <h3 className="font-bold text-xl">Comments</h3>
-                        <button onClick={() => setShowComments(false)}><X size={24} /></button>
-                      </div>
-                      <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                        {comments.length > 0 ? (
-                          comments.map((c, i) => (
-                            <div key={i} className="flex gap-3">
-                              <div className="w-10 h-10 rounded-full bg-[#ff3f6c] text-white flex items-center justify-center font-bold flex-shrink-0">{c.user?.fullName?.[0] || c.user?.ownerName?.[0] || "?"}</div>
-                              <div className="flex flex-col">
-                                <span className="font-bold text-black text-sm">{c.user?.fullName || c.user?.ownerName || "Gourmet"}</span>
-                                <p className="text-gray-800 text-sm">{c.text}</p>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-center text-gray-400 mt-20">No comments yet. Start the conversation!</p>
-                        )}
-                      </div>
-                      <form className="p-6 border-t bg-gray-50 flex gap-3" onSubmit={handleAddComment}>
-                        <input
-                          type="text"
-                          placeholder="Say something nice..."
-                          className="flex-1 px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:border-[#ff3f6c] text-black bg-white"
-                          value={newComment}
-                          onChange={(e) => setNewComment(e.target.value)}
-                        />
-                        <button type="submit" className="w-12 h-12 bg-[#ff3f6c] text-white rounded-full flex items-center justify-center hover:bg-[#e0355f] transition-colors shadow-lg active:scale-90">
-                          <Send size={20} />
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                )}
-              </div>
+      {!isLoggedIn ? (
+        <div className="flex-1 flex flex-col items-center justify-center bg-[url('https://b.zmtcdn.com/web_assets/81f3ff974d82520780078ba1cfbd453a1583259680.png')] bg-cover bg-center">
+          <div className="absolute inset-0 bg-black/60"></div>
+          <div className="relative z-10 text-center px-4">
+            <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight">
+              Zomato
+            </h1>
+            <p className="text-xl md:text-3xl text-white mb-8 font-light max-w-2xl mx-auto">
+              Discover the best food & drinks in your city
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => setAuthModal('signup')}
+                className="bg-[#ff3f6c] hover:bg-[#e0355f] text-white px-8 py-3 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-lg"
+              >
+                Create an account
+              </button>
+              <button
+                onClick={() => setAuthModal('login')}
+                className="bg-white hover:bg-gray-100 text-black px-8 py-3 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-lg"
+              >
+                Log in
+              </button>
             </div>
-          ))
-        )}
-      </div>
+          </div>
+        </div>
+      ) : (
+        <div
+          ref={containerRef}
+          className="flex-1 overflow-y-scroll snap-y snap-mandatory bg-black scrollbar-hide pt-0"
+          style={{ scrollbarWidth: "none" }}
+        >
+          <style>{`.scrollbar-hide::-webkit-scrollbar { display: none; }`}</style>
+
+
+          {loading ? (
+            <div className="h-full w-full flex flex-col items-center justify-center text-white gap-4">
+              <Loader2 className="animate-spin text-[#ff3f6c]" size={48} />
+              <p className="text-xl font-medium animate-pulse">Refreshing content...</p>
+            </div>
+          ) : videos.length === 0 ? (
+            <div className="h-full w-full flex flex-col items-center justify-center text-white p-6 text-center">
+              <h2 className="text-3xl font-bold mb-4">No results found!</h2>
+              <p className="text-gray-400">Try searching for something else like "Burger" or "Pizza".</p>
+            </div>
+          ) : (
+            videos.map((video, index) => (
+              <div
+                key={video._id}
+                className="relative h-screen w-full snap-start flex items-center justify-center p-0 md:p-8 lg:p-12"
+              >
+                <div className="relative w-full h-[80vh] max-w-[1400px] mt-20 mx-auto overflow-hidden rounded-none md:rounded-3xl shadow-2xl bg-[#111]">
+                  <video
+                    ref={(el) => (videoRefs.current[index] = el)}
+                    className="h-full w-full object-cover"
+                    src={video.video}
+                    loop
+                    muted
+                    playsInline
+                  />
+
+                  <div className="absolute right-8 bottom-[25%] flex flex-col items-center gap-8 z-20">
+                    <button onClick={() => handleLike(video._id)} className={`flex flex-col items-center gap-1 transition-transform active:scale-95 ${video.isLiked ? 'text-[#ff3f6c]' : 'text-white'}`}>
+                      <Heart fill={video.isLiked ? "#ff3f6c" : "none"} size={36} strokeWidth={2.5} className="drop-shadow-xl" />
+                      <span className="text-sm font-bold drop-shadow-lg">{video.likeCount || 0}</span>
+                    </button>
+
+                    <button onClick={() => handleOpenComments(video)} className="flex flex-col items-center gap-1 transition-transform active:scale-95 text-white">
+                      <MessageCircle size={36} strokeWidth={2.5} className="drop-shadow-xl" />
+                      <span className="text-sm font-bold drop-shadow-lg">Chat</span>
+                    </button>
+
+                    <button onClick={() => handleSave(video._id)} className="flex flex-col items-center gap-1 transition-transform active:scale-95 text-white">
+                      <Bookmark fill={video.isSaved ? "white" : "none"} size={36} strokeWidth={2.5} className="drop-shadow-xl" />
+                      <span className="text-sm font-bold drop-shadow-lg">{video.isSaved ? 'Saved' : 'Save'}</span>
+                    </button>
+
+                    <button onClick={() => handleVisitStore(video.foodPartner?._id)} className="flex flex-col items-center gap-1 transition-transform active:scale-95 text-white">
+                      <img src="/food-delivery.png" alt="Order" className="w-[36px] h-[36px] object-contain invert brightness-0 [filter:drop-shadow(0_4px_6px_rgba(0,0,0,0.4))]" />
+                      <span className="text-sm font-bold drop-shadow-lg">Order</span>
+                    </button>
+                  </div>
+
+                  <div className="absolute bottom-0 left-0 right-0 p-12 pb-14 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                    <div className="mb-8 max-w-[85%]">
+                      <div
+                        className="flex items-center gap-4 mb-5 cursor-pointer group/brand w-fit"
+                        onClick={() => handleVisitStore(video.foodPartner?._id)}
+                      >
+                        <div className="w-14 h-14 rounded-full overflow-hidden bg-[#ff3f6c] p-0.5 shadow-xl border-2 border-white/20 transition-transform group-hover/brand:scale-110 group-hover/brand:border-[#ff3f6c]">
+                          {video.foodPartner?.profilePic ? (
+                            <img
+                              src={video.foodPartner.profilePic}
+                              alt={video.foodPartner.restaurantName}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                              <span className="text-white font-black text-xl">{video.foodPartner?.restaurantName?.[0] || "?"}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="text-white font-bold text-2xl group-hover/brand:text-[#ff3f6c] transition-colors">{video.foodPartner?.restaurantName || video.name}</h4>
+                          <p className="text-white text-xl font-normal leading-relaxed line-clamp-2 opacity-90 mt-1">{video.description}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {showComments && activeVideo?._id === video._id && (
+                    <div className="absolute inset-0 bg-black/50 z-30 flex justify-end" onClick={() => setShowComments(false)}>
+                      <div className="w-full max-w-[400px] h-full bg-white flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-6 border-b flex justify-between items-center text-black">
+                          <h3 className="font-bold text-xl">Comments</h3>
+                          <button onClick={() => setShowComments(false)}><X size={24} /></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                          {comments.length > 0 ? (
+                            comments.map((c, i) => (
+                              <div key={i} className="flex gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[#ff3f6c] text-white flex items-center justify-center font-bold flex-shrink-0">{c.user?.fullName?.[0] || c.user?.ownerName?.[0] || "?"}</div>
+                                <div className="flex flex-col">
+                                  <span className="font-bold text-black text-sm">{c.user?.fullName || c.user?.ownerName || "Gourmet"}</span>
+                                  <p className="text-gray-800 text-sm">{c.text}</p>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-center text-gray-400 mt-20">No comments yet. Start the conversation!</p>
+                          )}
+                        </div>
+                        <form className="p-6 border-t bg-gray-50 flex gap-3" onSubmit={handleAddComment}>
+                          <input
+                            type="text"
+                            placeholder="Say something nice..."
+                            className="flex-1 px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:border-[#ff3f6c] text-black bg-white"
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                          />
+                          <button type="submit" className="w-12 h-12 bg-[#ff3f6c] text-white rounded-full flex items-center justify-center hover:bg-[#e0355f] transition-colors shadow-lg active:scale-90">
+                            <Send size={20} />
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
       {/* Auth Selection Modal */}
       {authModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm" onClick={() => setAuthModal(null)}>
