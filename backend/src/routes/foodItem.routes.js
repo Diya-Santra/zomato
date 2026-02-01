@@ -24,7 +24,7 @@ router.post(
   createFood,
 );
 
-router.get("/get", autheUserMiddleware, getFood);
+router.get("/get", getFood);
 
 router.post("/like", autheUserMiddleware, likeFood);
 
