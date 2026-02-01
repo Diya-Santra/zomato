@@ -8,7 +8,7 @@ import cors from "cors";
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -21,8 +21,6 @@ app.use("/auth", authRoutes);
 app.use("/auth/foodItem", foodItemRoutes);
 app.use("/auth/food-partner",foodPartnerRoutes)
 
-app.get("/", (req, res) => {
-  console.log("Hello World");
-});
+
 
 export default app;
