@@ -25,7 +25,7 @@ const UserRegister = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:3000/auth/user/register",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/user/register`,
         {
           fullName,
           email,

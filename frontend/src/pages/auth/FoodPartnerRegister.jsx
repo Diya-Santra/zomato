@@ -28,7 +28,7 @@ const FoodPartnerRegister = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:3000/auth/food-partner/register",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/food-partner/register`,
         formData,
         {
           withCredentials: true,

@@ -32,7 +32,7 @@ const CreateFood = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/auth/foodItem/create",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/create`,
         formData,
         {
           withCredentials: true,

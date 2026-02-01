@@ -26,7 +26,7 @@ const Profile = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get(`http://localhost:3000/auth/food-partner/${id}`, {
+      .get(`${import.meta.env.VITE_BACKEND_URL}/auth/food-partner/${id}`, {
         withCredentials: true,
       })
       .then((response) => {
@@ -56,7 +56,7 @@ const Profile = () => {
 
   const fetchComments = async (foodId) => {
     try {
-      const response = await axios.get(`http://localhost:3000/auth/foodItem/comments/${foodId}`);
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/comments/${foodId}`);
       setComments(response.data.comments || []);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
@@ -67,7 +67,7 @@ const Profile = () => {
     e.stopPropagation();
     try {
       const response = await axios.post(
-        "http://localhost:3000/auth/foodItem/like",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/like`,
         { foodId },
         { withCredentials: true }
       );
@@ -100,7 +100,7 @@ const Profile = () => {
     e.stopPropagation();
     try {
       await axios.post(
-        "http://localhost:3000/auth/foodItem/save",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/save`,
         { foodId },
         { withCredentials: true }
       );
@@ -125,7 +125,7 @@ const Profile = () => {
 
     try {
       await axios.post(
-        "http://localhost:3000/auth/foodItem/comment",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/comment`,
         { foodId: selectedVideo._id, text: newComment },
         { withCredentials: true }
       );
@@ -153,7 +153,7 @@ const Profile = () => {
     setIsUpdatingPfp(true);
     try {
       const response = await axios.put(
-        "http://localhost:3000/auth/food-partner/update-pfp",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/food-partner/update-pfp`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

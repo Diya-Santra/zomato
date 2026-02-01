@@ -32,7 +32,7 @@ const Home = () => {
         const payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.id) {
           // Attempt to fetch if it's a food-partner
-          axios.get(`http://localhost:3000/auth/food-partner/${payload.id}`, { withCredentials: true })
+          axios.get(`${import.meta.env.VITE_BACKEND_URL}/auth/food-partner/${payload.id}`, { withCredentials: true })
             .then(res => {
               if (res.data.foodPartner) {
                 setUserProfile(res.data.foodPartner);
@@ -52,7 +52,7 @@ const Home = () => {
     const token = Cookies.get("token");
     try {
       const result = await axios.get(
-        `http://localhost:3000/auth/foodItem/get${query ? `?search=${query}` : ""}`,
+        `${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/get${query ? `?search=${query}` : ""}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true
@@ -86,7 +86,7 @@ const Home = () => {
     try {
       const token = Cookies.get("token");
       await axios.post(
-        "http://localhost:3000/auth/user/logout",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/user/logout`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -137,7 +137,7 @@ const Home = () => {
 
   const fetchComments = async (foodId) => {
     try {
-      const response = await axios.get(`http://localhost:3000/auth/foodItem/comments/${foodId}`);
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/comments/${foodId}`);
       setComments(response.data.comments || []);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
@@ -147,7 +147,7 @@ const Home = () => {
   const handleLike = async (foodId) => {
     try {
       await axios.post(
-        "http://localhost:3000/auth/foodItem/like",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/like`,
         { foodId },
         { withCredentials: true }
       );
@@ -166,7 +166,7 @@ const Home = () => {
   const handleSave = async (foodId) => {
     try {
       await axios.post(
-        "http://localhost:3000/auth/foodItem/save",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/save`,
         { foodId },
         { withCredentials: true }
       );
@@ -190,7 +190,7 @@ const Home = () => {
 
     try {
       await axios.post(
-        "http://localhost:3000/auth/foodItem/comment",
+        `${import.meta.env.VITE_BACKEND_URL}/auth/foodItem/comment`,
         { foodId: activeVideo._id, text: newComment },
         { withCredentials: true }
       );
